@@ -1,0 +1,35 @@
+services:
+  # Backend API Web Service
+  - type: web
+    name: repeated-complaint-api
+    runtime: python
+    region: oregon
+    plan: free
+    branch: master
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: CORS_ORIGINS
+        value: "http://localhost:5173"
+
+  # Frontend Static Site
+  - type: web
+    name: repeated-complaint-ui
+    runtime: static
+    region: oregon
+    plan: free
+    branch: master
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: "./frontend/dist"
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: repeated-complaint-api
+          property: host

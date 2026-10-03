@@ -24,18 +24,28 @@ app = FastAPI(
     version="1.0.0",
 )
 
+import os
+
 # ---------------------------------------------------------------------------
 # CORS configuration
 # ---------------------------------------------------------------------------
-# Allow the local Vite dev server to communicate with the backend.
-# In production, replace these with the actual frontend origin.
+# Defaults allow local development Vite and standard dev servers.
+# Production origins can be specified via comma-separated CORS_ORIGINS env var.
+default_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+]
+env_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+allowed_origins = list(set(default_origins + env_origins))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",   # Vite default
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
